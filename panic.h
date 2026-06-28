@@ -38,7 +38,7 @@ struct Panic_Context
 #endif
 };
 
-#define _panic_context_uninit (struct Panic_Context){0, 0, 0, 0, 0, 0, 0, 0}
+#define _panic_context_uninit (struct Panic_Context){0}
 
 __attribute__((returns_twice)) bool _panic_context_save(
     struct Panic_Context* context);
