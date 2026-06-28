@@ -97,3 +97,24 @@ extern _Thread_local struct Panic_Info _PANIC_INFO;
 _Noreturn void _panic_raise(struct Panic_Info info);
 
 /* Try/Catch API */
+
+#define _panic_try_frame(__predicate) \
+  _panic_frame_init(Panic_Frame_Kind_Catch, (__predicate))
+
+#define _panic_try_begin(__frame) \
+  (_panic_frame_push(&(__frame)), !_panic_context_save(&(__frame).context))
+
+#define _panic_try_end(__once) (_panic_frame_pop(), (__once) = NULL)
+#define _panic_catch_begin() _panic_frame_pop()
+#define _panic_catch_end(__once) ((__once) = NULL)
+
+#define panic_try(__predicate)                                            \
+  for (struct Panic_Frame __panic__frame = _panic_try_frame(__predicate), \
+                          *__panic__once = &__panic__frame;               \
+       __panic__once != NULL; __panic__once = NULL)                       \
+    if (_panic_try_begin(__panic__frame))                                 \
+      for (; __panic__once != NULL; _panic_try_end(__panic__once))
+
+#define panic_catch                                      \
+  else for (_panic_catch_begin(); __panic__once != NULL; \
+            _panic_catch_end(__panic__once))
