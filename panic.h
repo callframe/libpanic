@@ -34,6 +34,8 @@ struct Panic_Context
 #endif
 };
 
+#define _panic_context_uninit {0, 0, 0, 0, 0, 0, 0, 0}
+
 bool _panic_context_save(struct Panic_Context* context);
 _Noreturn void _panic_context_restore(struct Panic_Context* context);
 
@@ -62,6 +64,11 @@ struct Panic_Frame
   struct Panic_Context context;
   Panic_Frame_Predicate_Fn predicate;
 };
+
+extern _Thread_local struct Panic_Frame* _PANIC_FRAME;
+
+#define _panic_frame_init(kind, predicate) \
+  {kind, NULL, _panic_context_uninit, predicate}
 
 void _panic_frame_push(struct Panic_Frame* frame);
 void _panic_frame_pop(void);
