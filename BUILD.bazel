@@ -1,0 +1,18 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+
+COPTS = [
+    '-std=c11',
+    '-Wall',
+    '-Wextra',
+]
+
+ASSEMBLY_SRC = select({
+    "@platforms//cpu:x86_64": ["panic_x86.S"],
+})
+
+cc_library(
+    name = "panic",
+    copts = COPTS,
+    hdrs = ["panic.h"],
+    srcs = ["panic.c"] + ASSEMBLY_SRC,   
+)

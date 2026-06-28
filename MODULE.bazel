@@ -1,0 +1,11 @@
+module(name = "libpanic")
+
+bazel_dep(name = "rules_cc", version = "0.2.20")
+bazel_dep(name = "platforms", version = "1.1.0")
+
+bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+git_override(
+    module_name = "hedron_compile_commands",
+    remote = "https://github.com/ultimateanu/bazel-compile-commands-extractor.git",
+    commit = "2dc498f24587eccc2752f8a892da004d9baa8318",
+)
