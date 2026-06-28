@@ -36,7 +36,7 @@ _panic_context_save:
     movq %rax, 16(%rdi)
 
 /* Return 0 to indicate that the context was saved successfully */
-    xorl %eax, %eax
+    xorb %al, %al
     ret
 
 #elif defined(__i386__)
@@ -67,7 +67,7 @@ _panic_context_save:
     movl %ecx, 8(%eax)
 
 /* Return 0 to indicate that the context was saved successfully */
-    xorl %eax, %eax
+    xorb %al, %al
     ret
 
 #else
