@@ -3,7 +3,7 @@
 extern Panic_Handle_Fn _PANIC_HANDLER;
 
 _Thread_local struct Panic_Frame* _PANIC_FRAME = NULL;
-_Thread_local struct Panic_Info _PANIC_INFO = PANIC_INFO_UNINIT;
+_Thread_local struct Panic_Info _PANIC_INFO = _panic_info_uninit;
 
 void _panic_frame_push(struct Panic_Frame* frame)
 {

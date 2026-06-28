@@ -75,8 +75,14 @@ struct Panic_Info
   size_t type;
   uint8_t* data;
   Panic_Handle_Fn handle;
+
+  char const* file;
+  uint32_t line;
 };
 
-#define PANIC_INFO_UNINIT {0, NULL, NULL}
+#define _panic_info_init(type, data, handle) \
+  {type, (uint8_t*)data, handle, __FILE__, __LINE__}
+
+#define _panic_info_uninit _panic_info_init(0, NULL, NULL)
 
 _Noreturn void _panic_raise(struct Panic_Info info);
