@@ -33,7 +33,7 @@ _Noreturn void _panic_raise(struct Panic_Info info)
           _PANIC_FRAME = frame;
           _panic_context_restore(&frame->context);  // Does not return
         }
-        break;  // If predicate doesn't match we continue unwinding the stack
+        break;  // If predicate doesn't match; continue unwinding the stack
 
       case Panic_Frame_Kind_Root:
         goto fail;

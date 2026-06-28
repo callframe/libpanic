@@ -34,7 +34,7 @@ struct Panic_Context
 #endif
 };
 
-#define _panic_context_uninit {0, 0, 0, 0, 0, 0, 0, 0}
+#define _panic_context_uninit (struct Panic_Context){0, 0, 0, 0, 0, 0, 0, 0}
 
 bool _panic_context_save(struct Panic_Context* context);
 _Noreturn void _panic_context_restore(struct Panic_Context* context);
@@ -67,8 +67,8 @@ struct Panic_Frame
 
 extern _Thread_local struct Panic_Frame* _PANIC_FRAME;
 
-#define _panic_frame_init(kind, predicate) \
-  {kind, NULL, _panic_context_uninit, predicate}
+#define _panic_frame_init(__kind, __predicate) \
+  (struct Panic_Frame) { __kind, NULL, _panic_context_uninit, __predicate }
 
 void _panic_frame_push(struct Panic_Frame* frame);
 void _panic_frame_pop(void);
@@ -87,9 +87,13 @@ struct Panic_Info
   uint32_t line;
 };
 
-#define _panic_info_init(type, data, handle) \
-  {type, (uint8_t*)data, handle, __FILE__, __LINE__}
+extern _Thread_local struct Panic_Info _PANIC_INFO;
+
+#define _panic_info_init(__type, __data, __handle) \
+  {__type, (uint8_t*)__data, __handle, __FILE__, __LINE__}
 
 #define _panic_info_uninit _panic_info_init(0, NULL, NULL)
 
 _Noreturn void _panic_raise(struct Panic_Info info);
+
+/* Try/Catch API */
