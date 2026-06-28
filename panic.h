@@ -4,6 +4,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+struct Panic_Info;
+
+typedef void (*Panic_Handle_Fn)(const struct Panic_Info* info);
+
 /* Panic_Context is used to save the CPU state when a panic occurs
  * and recover it when the panic is handled. It is architecture-specific and
  * must be implemented for each supported architecture.
@@ -36,7 +40,8 @@ struct Panic_Context
 
 #define _panic_context_uninit (struct Panic_Context){0, 0, 0, 0, 0, 0, 0, 0}
 
-bool _panic_context_save(struct Panic_Context* context);
+__attribute__((returns_twice)) bool _panic_context_save(
+    struct Panic_Context* context);
 _Noreturn void _panic_context_restore(struct Panic_Context* context);
 
 /* The Panic_Frame describes a frame in the panic handling stack.
@@ -75,24 +80,19 @@ void _panic_frame_pop(void);
 
 /* Panic_Info describes the information associated with a panic. */
 
-typedef void (*Panic_Handle_Fn)(const struct Panic_Info* info);
-
 struct Panic_Info
 {
   size_t type;
   uint8_t* data;
-  Panic_Handle_Fn handle;
 
   char const* file;
   uint32_t line;
 };
 
-extern _Thread_local struct Panic_Info _PANIC_INFO;
+#define _panic_info_init(__type, __data) \
+  {__type, (uint8_t*)__data, __FILE__, __LINE__}
 
-#define _panic_info_init(__type, __data, __handle) \
-  {__type, (uint8_t*)__data, __handle, __FILE__, __LINE__}
-
-#define _panic_info_uninit _panic_info_init(0, NULL, NULL)
+#define _panic_info_uninit _panic_info_init(0, NULL)
 
 _Noreturn void _panic_raise(struct Panic_Info info);
 
@@ -118,3 +118,21 @@ _Noreturn void _panic_raise(struct Panic_Info info);
 #define panic_catch                                      \
   else for (_panic_catch_begin(); __panic__once != NULL; \
             _panic_catch_end(__panic__once))
+
+/* Panic API */
+#define panic_raise(__type, __data) \
+  _panic_raise((struct Panic_Info)_panic_info_init((__type), (__data)))
+
+#define panic_return(__value) \
+  do                          \
+  {                           \
+    _panic_frame_pop();       \
+    return (__value);         \
+  } while (0)
+
+#define panic_return_void() \
+  do                        \
+  {                         \
+    _panic_frame_pop();     \
+    return;                 \
+  } while (0)
