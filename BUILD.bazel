@@ -14,5 +14,6 @@ cc_library(
     name = "panic",
     copts = COPTS,
     hdrs = ["panic.h"],
-    srcs = ["panic.c"] + ASSEMBLY_SRC,   
+    srcs = ["panic.c"] + ASSEMBLY_SRC,
+    visibility = ["//visibility:public"],
 )
