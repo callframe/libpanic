@@ -4,6 +4,19 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#ifdef __cplusplus
+#define _panic_noreturn [[noreturn]]
+#define _panic_thread_local thread_local
+#else
+#define _panic_noreturn _Noreturn
+#define _panic_thread_local _Thread_local
+#endif
+
+#ifdef __cplusplus
+extern "C"
+{
+#endif
+
 struct Panic_Info;
 
 typedef void (*Panic_Handle_Fn)(const struct Panic_Info* info);
@@ -38,11 +51,16 @@ struct Panic_Context
 #endif
 };
 
+#ifdef __cplusplus
+#define _panic_context_uninit \
+  Panic_Context {}
+#else
 #define _panic_context_uninit (struct Panic_Context){0}
+#endif
 
 __attribute__((returns_twice)) bool _panic_context_save(
     struct Panic_Context* context);
-_Noreturn void _panic_context_restore(struct Panic_Context* context);
+_panic_noreturn void _panic_context_restore(struct Panic_Context* context);
 
 /* The Panic_Frame describes a frame in the panic handling stack.
  * Catch kind is used for frames that catch a downstream panic and handle it.
@@ -70,10 +88,15 @@ struct Panic_Frame
   Panic_Frame_Predicate_Fn predicate;
 };
 
-extern _Thread_local struct Panic_Frame* _PANIC_FRAME;
+extern _panic_thread_local struct Panic_Frame* _PANIC_FRAME;
 
+#ifdef __cplusplus
+#define _panic_frame_init(__kind, __predicate) \
+  Panic_Frame { __kind, NULL, _panic_context_uninit, __predicate }
+#else
 #define _panic_frame_init(__kind, __predicate) \
   (struct Panic_Frame) { __kind, NULL, _panic_context_uninit, __predicate }
+#endif
 
 void _panic_frame_push(struct Panic_Frame* frame);
 void _panic_frame_pop(void);
@@ -89,12 +112,21 @@ struct Panic_Info
   uint32_t line;
 };
 
+#ifdef __cplusplus
+#define _panic_info_init(__type, __data) \
+  Panic_Info { __type, (uint8_t*)__data, __FILE__, __LINE__ }
+#else
 #define _panic_info_init(__type, __data) \
   {__type, (uint8_t*)__data, __FILE__, __LINE__}
+#endif
 
 #define _panic_info_uninit _panic_info_init(0, NULL)
 
-_Noreturn void _panic_raise(struct Panic_Info info);
+_panic_noreturn void _panic_raise(struct Panic_Info info);
+
+#ifdef __cplusplus
+}
+#endif
 
 /* Try/Catch API */
 
@@ -120,8 +152,13 @@ _Noreturn void _panic_raise(struct Panic_Info info);
             _panic_catch_end(__panic__once))
 
 /* Panic API */
+#ifdef __cplusplus
+#define panic_raise(__type, __data) \
+  _panic_raise(_panic_info_init((__type), (__data)))
+#else
 #define panic_raise(__type, __data) \
   _panic_raise((struct Panic_Info)_panic_info_init((__type), (__data)))
+#endif
 
 #define panic_return(__value) \
   do                          \
